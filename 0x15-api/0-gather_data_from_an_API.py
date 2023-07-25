@@ -1,40 +1,24 @@
 #!/usr/bin/python3
-""" Gather data from an API  """
+"""
+Uses the JSON placeholder api to query data about an employee
+"""
 
-if __name__ == "__main__":
-    from requests import get
-    from sys import argv, exit
+from requests import get
+from sys import argv
 
-    try:
-        id = argv[1]
-        is_int = int(id)
-    except:
-        exit()
+if __name__ == '__main__':
+    main_url = 'https://jsonplaceholder.typicode.com'
+    todo_url = main_url + "/user/{}/todos".format(argv[1])
+    name_url = main_url + "/users/{}".format(argv[1])
+    todo_result = get(todo_url).json()
+    name_result = get(name_url).json()
 
-    url_user = "https://jsonplaceholder.typicode.com/users?id=" + id
-    url_todo = "https://jsonplaceholder.typicode.com/todos?userId=" + id
-
-    r_user = get(url_user)
-    r_todo = get(url_todo)
-
-    try:
-        js_user = r_user.json()
-        js_todo = r_todo.json()
-
-    except ValueError:
-        print("Not a valid JSON")
-
-    if js_user and js_todo:
-        EMPLOYEE_NAME = js_user[0].get('name')
-        TOTAL_NUMBER_OF_TASKS = len(js_todo)
-        NUMBER_OF_DONE_TASKS = sum(item.get("completed")
-                                   for item in js_todo if item)
-
-        print("Employee {} is done with tasks({}/{}):"
-              .format(EMPLOYEE_NAME,
-                      NUMBER_OF_DONE_TASKS,
-                      TOTAL_NUMBER_OF_TASKS))
-        for todo in js_todo:
-            TASK_TITLE = todo.get('title')
-            if todo.get("completed"):
-                print("\t {}".format(TASK_TITLE))
+    todo_num = len(todo_result)
+    todo_complete = len([todo for todo in todo_result
+                         if todo.get("completed")])
+    name = name_result.get("name")
+    print("Employee {} is done with tasks({}/{}):"
+          .format(name, todo_complete, todo_num))
+    for todo in todo_result:
+        if (todo.get("completed")):
+            print("\t {}".format(todo.get("title")))

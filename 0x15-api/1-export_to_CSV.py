@@ -1,41 +1,26 @@
 #!/usr/bin/python3
-""" Export to CSV  """
+"""fetches information from JSONplaceholder API and exports to CSV"""
+
+from csv import DictWriter, QUOTE_ALL
+from requests import get
+from sys import argv
+
 
 if __name__ == "__main__":
-    import csv
-    from requests import get
-    from sys import argv, exit
+    main_url = "https://jsonplaceholder.typicode.com"
+    todo_url = main_url + "/user/{}/todos".format(argv[1])
+    name_url = main_url + "/users/{}".format(argv[1])
+    todo_result = get(todo_url).json()
+    name_result = get(name_url).json()
 
-    try:
-        id = argv[1]
-        is_int = int(id)
-    except:
-        exit()
-
-    url_user = "https://jsonplaceholder.typicode.com/users?id=" + id
-    url_todo = "https://jsonplaceholder.typicode.com/todos?userId=" + id
-
-    r_user = get(url_user)
-    r_todo = get(url_todo)
-
-    try:
-        js_user = r_user.json()
-        js_todo = r_todo.json()
-
-    except ValueError:
-        print("Not a valid JSON")
-
-    if js_user and js_todo:
-        USER_ID = id
-        USERNAME = js_user[0].get('username')
-
-        with open(id + '.csv', 'w', newline='') as csvfile:
-            spamwriter = csv.writer(csvfile, delimiter=',',
-                                    quotechar='"', quoting=csv.QUOTE_ALL)
-            for todo in js_todo:
-                TASK_COMPLETED_STATUS = todo.get("completed")
-                TASK_TITLE = todo.get('title')
-                spamwriter.writerow([USER_ID,
-                                     USERNAME,
-                                     TASK_COMPLETED_STATUS,
-                                     TASK_TITLE])
+    todo_list = []
+    for todo in todo_result:
+        todo_dict = {}
+        todo_dict.update({"user_ID": argv[1], "username": name_result.get(
+            "username"), "completed": todo.get("completed"),
+                          "task": todo.get("title")})
+        todo_list.append(todo_dict)
+    with open("{}.csv".format(argv[1]), 'w', newline='') as f:
+        header = ["user_ID", "username", "completed", "task"]
+        writer = DictWriter(f, fieldnames=header, quoting=QUOTE_ALL)
+        writer.writerows(todo_list)
