@@ -12,3 +12,4 @@ What you should learn from this project:
 
 ### [2. Create a dashboard](./2-setup_datadog)
 * Create a dashboard with different metrics displayed in order to get a few different visualizations.
+
